@@ -16,7 +16,7 @@ const searchConfigs = {
  }
 };
 
-// Boolean logic for each search type
+// Boolean logic keywords for each search type
 const keywordMap = {
  shaping: [
  "Humanoid Robotics", "Embodied AI", "Sim-to-Real", "Sim2Real",
@@ -26,7 +26,7 @@ const keywordMap = {
  "Autonomous Systems", "Autonomy", "Digital Twin",
  "Human Performance Modeling", "Unmanned Systems",
  "Manufacturing Robotics", "Logistics Robotics"
- ].join(' OR '), // can adjust for more narrow or broad search
+ ].join(' OR '),
  capture: [
  "Humanoid Robotics", "Embodied AI", "Sim-to-Real", "Sim2Real",
  "Large Movement Model", "LMM", "Large Behavioral Model", "LBM",
@@ -84,25 +84,24 @@ function getOpportunityTypeClass(type) {
  return '';
 }
 
-// Function to handle opportunity link clicks
+// Function to handle opportunity link clicks (open in new tab)
 function handleOpportunityClick(event, link) {
- // Default: open link in new tab/window
  window.open(link, '_blank');
 }
 
-// Function to show loading indicator
+// Show loading indicator
 function showLoading() {
  loadingIndicator.classList.remove('hidden');
  resultsHeader.classList.add('hidden');
  resultsTable.classList.add('hidden');
 }
 
-// Function to hide loading indicator
+// Hide loading indicator
 function hideLoading() {
  loadingIndicator.classList.add('hidden');
 }
 
-// Function to clear previous results
+// Clear previous results
 function clearResults() {
  resultsTitle.textContent = '';
  resultsCount.textContent = '';
@@ -111,16 +110,14 @@ function clearResults() {
  resultsTable.classList.add('hidden');
 }
 
-// Function to display search results
+// Display search results
 function displayResults(config, data) {
- // Update results header
  resultsTitle.textContent = config.title;
  resultsCount.textContent = `${data.length} opportunities found`;
  resultsHeader.classList.remove('hidden');
  resultsTable.classList.remove('hidden');
- // Clear previous results
  resultsBody.innerHTML = '';
- // Populate table with results data
+
  data.forEach(opportunity => {
  const row = document.createElement('tr');
  row.innerHTML = `
@@ -135,11 +132,11 @@ function displayResults(config, data) {
  });
 }
 
-// Main search logic: fetch live opportunities through Vercel API
+// Main search logic: fetch live opportunities from your Vercel API
 async function fetchLiveOpportunities(searchType) {
  const config = searchConfigs[searchType];
 
- // Select dates as needed (use your desired date window)
+ // Set your date window, adjust as needed
  const postedFrom = "08/01/2025";
  const postedTo = "08/15/2025";
  const keyword = keywordMap[searchType];
@@ -150,7 +147,6 @@ async function fetchLiveOpportunities(searchType) {
  const response = await fetch(url);
  const data = await response.json();
 
- // Map SAM.gov data to table schema
  const opportunities = (data.opportunitiesData || []).map(opp => ({
  title: opp.title || "",
  agency: opp.fullParentPathName || "",
