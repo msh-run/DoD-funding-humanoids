@@ -52,6 +52,8 @@ const shapingBtn = document.getElementById('shapingBtn');
 const captureBtn = document.getElementById('captureBtn');
 const prototypeBtn = document.getElementById('prototypeBtn');
 const clearBtn = document.getElementById('clearBtn');
+const postedFromInput = document.getElementById('postedFrom');
+const postedToInput = document.getElementById('postedTo');
 const loadingIndicator = document.getElementById('loadingIndicator');
 const resultsHeader = document.getElementById('resultsHeader');
 const resultsTitle = document.getElementById('resultsTitle');
@@ -73,6 +75,13 @@ function formatDate(dateString) {
  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+// Convert YYYY-MM-DD (from input type="date") to MM/DD/YYYY for SAM API
+function formatInputDate(val) {
+ if (!val) return "";
+ const [year, month, day] = val.split("-");
+ return `${month}/${day}/${year}`;
+}
+
 // Function to get CSS class for opportunity type
 function getOpportunityTypeClass(type) {
  if (!type) return '';
@@ -84,7 +93,7 @@ function getOpportunityTypeClass(type) {
  return '';
 }
 
-// Function to handle opportunity link clicks (open in new tab)
+// Function to handle opportunity link clicks
 function handleOpportunityClick(event, link) {
  window.open(link, '_blank');
 }
@@ -132,13 +141,13 @@ function displayResults(config, data) {
  });
 }
 
-// Main search logic: fetch live opportunities from your Vercel API
+// Main search logic: fetch live opportunities via Vercel API, using selected date range
 async function fetchLiveOpportunities(searchType) {
  const config = searchConfigs[searchType];
 
- // Set your date window, adjust as needed
- const postedFrom = "08/01/2025";
- const postedTo = "08/15/2025";
+ // Read dates from HTML inputs, convert to MM/DD/YYYY for SAM.gov
+ const postedFrom = formatInputDate(postedFromInput.value);
+ const postedTo = formatInputDate(postedToInput.value);
  const keyword = keywordMap[searchType];
 
  showLoading();
