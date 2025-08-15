@@ -2,83 +2,59 @@
 <html lang="en">
 <head>
  <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <title>SAM.gov Defense Opportunity Search Dashboard</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <link rel="stylesheet" href="style.css">
 </head>
 <body>
  <div class="container">
- <header class="dashboard-header">
+
+ <header>
  <h1>SAM.gov Defense Opportunity Search Dashboard</h1>
- <p class="subtitle">Search for embodied AI and robotics opportunities across defense agencies</p>
+ <p>Search for DoD, NASA, DOE, and innovation contract opportunities in embodied AI & robotics</p>
  </header>
 
- <main class="dashboard-main">
- <div class="search-controls">
- <div class="search-buttons-grid">
- <button class="btn btn--search btn--shaping" id="shapingBtn" data-search="shaping">
- <div class="btn-content">
- <h3>Shaping Stage Opportunities</h3>
- <p>(6-98 months)</p>
- <span class="btn-description">Sources Sought, RFI, Presolicitations</span>
- </div>
- </button>
+ <!-- Date Range Selectors -->
+ <section class="search-controls">
+ <label for="postedFrom">From:</label>
+ <input type="date" id="postedFrom" name="postedFrom" value="2025-08-01">
+ <label for="postedTo">To:</label>
+ <input type="date" id="postedTo" name="postedTo" value="2025-08-15">
+ </section>
 
- <button class="btn btn--search btn--capture" id="captureBtn" data-search="capture">
- <div class="btn-content">
- <h3>Near-Term Capture</h3>
- <p>(Active Solicitations)</p>
- <span class="btn-description">Current opportunities ready for proposals</span>
- </div>
- </button>
+ <!-- Search Buttons -->
+ <section>
+ <button class="btn" id="shapingBtn">Shaping Stage (Sources Sought, RFI, Pre-solicitation)</button>
+ <button class="btn" id="captureBtn">Near-Term Capture (Active Solicitations)</button>
+ <button class="btn" id="prototypeBtn">High-Dollar Prototypes ($500k-$25M)</button>
+ <button class="btn" id="clearBtn">Clear Results</button>
+ </section>
 
- <button class="btn btn--search btn--prototype" id="prototypeBtn" data-search="prototype">
- <div class="btn-content">
- <h3>High-Dollar Prototypes</h3>
- <p>($500K - $25M)</p>
- <span class="btn-description">OTA, BAA, SBIR/STTR opportunities</span>
- </div>
- </button>
- </div>
+ <!-- Loading Indicator -->
+ <div id="loadingIndicator" class="hidden">Searching opportunities...</div>
 
- <div class="action-buttons">
- <button class="btn btn--secondary" id="clearBtn">Clear Results</button>
- </div>
- </div>
-
- <div class="loading-indicator hidden" id="loadingIndicator">
- <div class="spinner"></div>
- <p>Searching SAM.gov opportunities...</p>
- </div>
-
- <div class="results-section" id="resultsSection">
- <div class="results-header hidden" id="resultsHeader">
+ <!-- Results Section -->
+ <section id="resultsSection">
+ <div id="resultsHeader" class="hidden">
  <h2 id="resultsTitle"></h2>
- <p class="results-count" id="resultsCount"></p>
+ <div id="resultsCount"></div>
  </div>
- 
- <div class="results-table-container">
- <table class="results-table hidden" id="resultsTable">
+
+ <table id="resultsTable" class="hidden">
  <thead>
  <tr>
- <th>Opportunity Title</th>
- <th>Agency/Organization</th>
+ <th>Title</th>
+ <th>Agency</th>
  <th>Type</th>
  <th>Posted Date</th>
  <th>Response Deadline</th>
  <th>Estimated Value</th>
  </tr>
  </thead>
- <tbody id="resultsBody">
- </tbody>
+ <tbody id="resultsBody"></tbody>
  </table>
- </div>
- </div>
- </main>
+ </section>
 
- <footer class="dashboard-footer">
- <p>Search powered by SAM.gov Boolean logic | Last updated: August 15, 2025</p>
- </footer>
  </div>
 
  <script src="app.js"></script>
