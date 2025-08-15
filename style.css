@@ -32,8 +32,9 @@ header p {
 .search-controls {
  margin-bottom: 22px;
  display: flex;
+ flex-wrap: wrap;
  align-items: center;
- gap: 14px;
+ gap: 12px 20px;
 }
 
 label {
@@ -41,8 +42,10 @@ label {
  color: #333;
 }
 
-input[type="date"] {
- padding: 5px 7px;
+input[type="date"],
+input[type="text"],
+select {
+ padding: 6px 8px;
  font-size: 1rem;
  border-radius: 4px;
  border: 1px solid #bbc;
@@ -50,9 +53,13 @@ input[type="date"] {
  outline: none;
 }
 
+select {
+ min-width: 160px;
+}
+
 button.btn {
- margin-right: 12px;
- margin-bottom: 12px;
+ margin-right: 0;
+ margin-bottom: 8px;
  font-size: 1rem;
  background: #0053ba;
  color: white;
@@ -162,4 +169,24 @@ a:hover {
  background: #0a9151;
 }
 .status--ota {
- background
+ background: #c3660f;
+}
+
+@media (max-width: 1080px) {
+ .container {max-width: 98vw;}
+}
+@media (max-width: 800px) {
+ .container {
+ padding: 14px 3vw 24px 3vw;
+ }
+ #resultsTable th, #resultsTable td {
+ padding: 9px 4px;
+ font-size: 0.96rem;
+ }
+ header h1 {font-size: 1.3rem;}
+}
+@media (max-width: 500px) {
+ .container {padding: 3vw 1vw;}
+ #resultsTable {font-size: 0.94rem;}
+ .search-controls {flex-direction: column; gap: 10px;}
+}
