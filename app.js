@@ -33,4 +33,138 @@ const keywordMap = {
  "Motion Capture", "Wearable Motion Data", "Human-Robot Interaction",
  "Robotics Data Infrastructure", "Defense AI", "AI-Enabled Robotics",
  "Autonomous Systems", "Autonomy", "Digital Twin",
- "Human Performance
+ "Human Performance Modeling", "Unmanned Systems",
+ "Manufacturing Robotics", "Logistics Robotics"
+ ].join(' OR '),
+ prototype: [
+ "Humanoid Robotics", "Embodied AI", "Sim-to-Real", "Sim2Real",
+ "Large Movement Model", "LMM", "Large Behavioral Model", "LBM",
+ "Motion Capture", "Wearable Motion Data", "Human-Robot Interaction",
+ "Robotics Data Infrastructure", "Defense AI", "AI-Enabled Robotics",
+ "Autonomous Systems", "Autonomy", "Digital Twin",
+ "Human Performance Modeling", "Unmanned Systems",
+ "Manufacturing Robotics", "Logistics Robotics"
+ ].join(' OR ')
+};
+
+// DOM Elements
+const shapingBtn = document.getElementById('shapingBtn');
+const captureBtn = document.getElementById('captureBtn');
+const prototypeBtn = document.getElementById('prototypeBtn');
+const clearBtn = document.getElementById('clearBtn');
+const loadingIndicator = document.getElementById('loadingIndicator');
+const resultsHeader = document.getElementById('resultsHeader');
+const resultsTitle = document.getElementById('resultsTitle');
+const resultsCount = document.getElementById('resultsCount');
+const resultsTable = document.getElementById('resultsTable');
+const resultsBody = document.getElementById('resultsBody');
+
+// Event Listeners
+shapingBtn.addEventListener('click', () => fetchLiveOpportunities('shaping'));
+captureBtn.addEventListener('click', () => fetchLiveOpportunities('capture'));
+prototypeBtn.addEventListener('click', () => fetchLiveOpportunities('prototype'));
+clearBtn.addEventListener('click', clearResults);
+
+// Utility function to format dates
+function formatDate(dateString) {
+ if (!dateString) return "";
+ const date = new Date(dateString);
+ if (isNaN(date)) return dateString;
+ return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// Function to get CSS class for opportunity type
+function getOpportunityTypeClass(type) {
+ if (!type) return '';
+ type = type.toLowerCase();
+ if (type.includes('sources sought')) return 'status--sources-sought';
+ if (type.includes('information')) return 'status--rfi';
+ if (type.includes('solicitation')) return 'status--solicitation';
+ if (type.includes('transaction') || type.includes('ota')) return 'status--ota';
+ return '';
+}
+
+// Function to handle opportunity link clicks
+function handleOpportunityClick(event, link) {
+ // Default: open link in new tab/window
+ window.open(link, '_blank');
+}
+
+// Function to show loading indicator
+function showLoading() {
+ loadingIndicator.classList.remove('hidden');
+ resultsHeader.classList.add('hidden');
+ resultsTable.classList.add('hidden');
+}
+
+// Function to hide loading indicator
+function hideLoading() {
+ loadingIndicator.classList.add('hidden');
+}
+
+// Function to clear previous results
+function clearResults() {
+ resultsTitle.textContent = '';
+ resultsCount.textContent = '';
+ resultsHeader.classList.add('hidden');
+ resultsBody.innerHTML = '';
+ resultsTable.classList.add('hidden');
+}
+
+// Function to display search results
+function displayResults(config, data) {
+ // Update results header
+ resultsTitle.textContent = config.title;
+ resultsCount.textContent = `${data.length} opportunities found`;
+ resultsHeader.classList.remove('hidden');
+ resultsTable.classList.remove('hidden');
+ // Clear previous results
+ resultsBody.innerHTML = '';
+ // Populate table with results data
+ data.forEach(opportunity => {
+ const row = document.createElement('tr');
+ row.innerHTML = `
+ <td><a href="${opportunity.link}" target="_blank">${opportunity.title}</a></td>
+ <td>${opportunity.agency}</td>
+ <td><span class="status-badge ${getOpportunityTypeClass(opportunity.type)}">${opportunity.type || ""}</span></td>
+ <td>${formatDate(opportunity.postedDate)}</td>
+ <td>${formatDate(opportunity.responseDeadline)}</td>
+ <td>${opportunity.estimatedValue}</td>
+ `;
+ resultsBody.appendChild(row);
+ });
+}
+
+// Main search logic: fetch live opportunities through Vercel API
+async function fetchLiveOpportunities(searchType) {
+ const config = searchConfigs[searchType];
+
+ // Select dates as needed (use your desired date window)
+ const postedFrom = "08/01/2025";
+ const postedTo = "08/15/2025";
+ const keyword = keywordMap[searchType];
+
+ showLoading();
+ try {
+ const url = `/api/sam-search?keyword=${encodeURIComponent(keyword)}&postedFrom=${postedFrom}&postedTo=${postedTo}&limit=25`;
+ const response = await fetch(url);
+ const data = await response.json();
+
+ // Map SAM.gov data to table schema
+ const opportunities = (data.opportunitiesData || []).map(opp => ({
+ title: opp.title || "",
+ agency: opp.fullParentPathName || "",
+ type: opp.type || "",
+ postedDate: opp.postedDate || "",
+ responseDeadline: opp.responseDeadLine || "",
+ estimatedValue: (opp.award && opp.award.amount) ? `$${opp.award.amount.toLocaleString()}` : "TBD",
+ link: opp.uiLink || (opp.links && opp.links[0] && opp.links.href) || "#"
+ }));
+
+ hideLoading();
+ displayResults(config, opportunities);
+ } catch (err) {
+ hideLoading();
+ alert("Error fetching opportunities: " + (err.message || err));
+ }
+}
