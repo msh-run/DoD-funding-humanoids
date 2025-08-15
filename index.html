@@ -11,23 +11,35 @@
 
  <header>
  <h1>SAM.gov Defense Opportunity Search Dashboard</h1>
- <p>Search for DoD, NASA, DOE, and innovation contract opportunities in embodied AI & robotics</p>
+ <p>Search for DoD, NASA, DOE, and innovation contract opportunities in embodied AI & robotics.</p>
  </header>
 
- <!-- Date Range Selectors -->
+ <!-- Search Controls -->
  <section class="search-controls">
+ <label for="keywordsInput">Keywords:</label>
+ <input type="text" id="keywordsInput" name="keywordsInput" placeholder="e.g. robotics, AI, autonomy" style="width:220px;">
+ 
+ <label for="typeSelect">Type:</label>
+ <select id="typeSelect" name="typeSelect">
+ <option value="">Any</option>
+ <option value="Sources Sought">Sources Sought</option>
+ <option value="Request for Information">RFI (Request for Information)</option>
+ <option value="Solicitation">Solicitation (RFP/RFQ)</option>
+ <option value="Presolicitation">Presolicitation</option>
+ <option value="Other Transaction Authority">OTA</option>
+ <option value="Combined Synopsis/Solicitation">Combined Synopsis/Solicitation</option>
+ <option value="Prototype Project">Prototype Project</option>
+ <option value="Broad Agency Announcement">BAA</option>
+ <option value="Other">Other</option>
+ </select>
+ 
  <label for="postedFrom">From:</label>
  <input type="date" id="postedFrom" name="postedFrom" value="2025-08-01">
  <label for="postedTo">To:</label>
  <input type="date" id="postedTo" name="postedTo" value="2025-08-15">
- </section>
 
- <!-- Search Buttons -->
- <section>
- <button class="btn" id="shapingBtn">Shaping Stage (Sources Sought, RFI, Pre-solicitation)</button>
- <button class="btn" id="captureBtn">Near-Term Capture (Active Solicitations)</button>
- <button class="btn" id="prototypeBtn">High-Dollar Prototypes ($500k-$25M)</button>
- <button class="btn" id="clearBtn">Clear Results</button>
+ <button class="btn" id="searchBtn">Search</button>
+ <button class="btn" id="exportBtn">Export to CSV</button>
  </section>
 
  <!-- Loading Indicator -->
@@ -39,7 +51,6 @@
  <h2 id="resultsTitle"></h2>
  <div id="resultsCount"></div>
  </div>
-
  <table id="resultsTable" class="hidden">
  <thead>
  <tr>
@@ -56,7 +67,6 @@
  </section>
 
  </div>
-
  <script src="app.js"></script>
 </body>
 </html>
