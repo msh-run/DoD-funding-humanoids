@@ -1,0 +1,25 @@
+# Node and web build artifacts
+node_modules/
+dist/
+build/
+*.log
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Coverage and temp
+coverage/
+*.tmp
+*.bak
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
