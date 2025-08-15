@@ -1,59 +1,12 @@
 // SAM.gov Defense Opportunity Search Dashboard JavaScript
 
-// Search type configurations
-const searchConfigs = {
- shaping: {
- title: 'Shaping Stage Opportunities',
- description: 'Early-stage opportunities including Sources Sought, RFI, and Pre-solicitations'
- },
- capture: {
- title: 'Near-Term Capture Opportunities',
- description: 'Active solicitations ready for proposal submission'
- },
- prototype: {
- title: 'High-Dollar Prototype Opportunities',
- description: 'Prototype and OTA opportunities with significant funding ($500K - $25M)'
- }
-};
-
-// Boolean-powered keywords for each search type
-const keywordMap = {
- shaping: [
- "Humanoid Robotics", "Embodied AI", "Sim-to-Real", "Sim2Real",
- "Large Movement Model", "LMM", "Large Behavioral Model", "LBM",
- "Motion Capture", "Wearable Motion Data", "Human-Robot Interaction",
- "Robotics Data Infrastructure", "Defense AI", "AI-Enabled Robotics",
- "Autonomous Systems", "Autonomy", "Digital Twin",
- "Human Performance Modeling", "Unmanned Systems",
- "Manufacturing Robotics", "Logistics Robotics"
- ].join(' OR '),
- capture: [
- "Humanoid Robotics", "Embodied AI", "Sim-to-Real", "Sim2Real",
- "Large Movement Model", "LMM", "Large Behavioral Model", "LBM",
- "Motion Capture", "Wearable Motion Data", "Human-Robot Interaction",
- "Robotics Data Infrastructure", "Defense AI", "AI-Enabled Robotics",
- "Autonomous Systems", "Autonomy", "Digital Twin",
- "Human Performance Modeling", "Unmanned Systems",
- "Manufacturing Robotics", "Logistics Robotics"
- ].join(' OR '),
- prototype: [
- "Humanoid Robotics", "Embodied AI", "Sim-to-Real", "Sim2Real",
- "Large Movement Model", "LMM", "Large Behavioral Model", "LBM",
- "Motion Capture", "Wearable Motion Data", "Human-Robot Interaction",
- "Robotics Data Infrastructure", "Defense AI", "AI-Enabled Robotics",
- "Autonomous Systems", "Autonomy", "Digital Twin",
- "Human Performance Modeling", "Unmanned Systems",
- "Manufacturing Robotics", "Logistics Robotics"
- ].join(' OR ')
-};
-
 // DOM elements
-const shapingBtn = document.getElementById('shapingBtn');
-const captureBtn = document.getElementById('captureBtn');
-const prototypeBtn = document.getElementById('prototypeBtn');
-const clearBtn = document.getElementById('clearBtn');
+const searchBtn = document.getElementById('searchBtn');
+const exportBtn = document.getElementById('exportBtn');
+const keywordsInput = document.getElementById('keywordsInput');
 const postedFromInput = document.getElementById('postedFrom');
 const postedToInput = document.getElementById('postedTo');
+const typeSelect = document.getElementById('typeSelect');
 const loadingIndicator = document.getElementById('loadingIndicator');
 const resultsHeader = document.getElementById('resultsHeader');
 const resultsTitle = document.getElementById('resultsTitle');
@@ -61,20 +14,19 @@ const resultsCount = document.getElementById('resultsCount');
 const resultsTable = document.getElementById('resultsTable');
 const resultsBody = document.getElementById('resultsBody');
 
-// Event listeners for buttons
-shapingBtn.addEventListener('click', () => fetchLiveOpportunities('shaping'));
-captureBtn.addEventListener('click', () => fetchLiveOpportunities('capture'));
-prototypeBtn.addEventListener('click', () => fetchLiveOpportunities('prototype'));
-clearBtn.addEventListener('click', clearResults);
+let latestResults = [];
 
-// Format date as MM/DD/YYYY
+// Event listeners
+searchBtn.addEventListener('click', handleUserSearch);
+exportBtn.addEventListener('click', exportResultsToCSV);
+
+// Utility functions
 function formatInputDate(val) {
  if (!val) return "";
  const [year, month, day] = val.split("-");
  return `${month}/${day}/${year}`;
 }
 
-// UI helpers
 function showLoading() {
  loadingIndicator.classList.remove('hidden');
  resultsHeader.classList.add('hidden');
@@ -91,7 +43,6 @@ function clearResults() {
  resultsTable.classList.add('hidden');
 }
 
-// Table type badge helper
 function getOpportunityTypeClass(type) {
  if (!type) return '';
  type = type.toLowerCase();
@@ -102,7 +53,6 @@ function getOpportunityTypeClass(type) {
  return '';
 }
 
-// Format for display
 function formatDate(dateString) {
  if (!dateString) return "";
  const date = new Date(dateString);
@@ -110,9 +60,54 @@ function formatDate(dateString) {
  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-// Show results in table
-function displayResults(config, data) {
- resultsTitle.textContent = config.title;
+// MAIN SEARCH LOGIC
+async function handleUserSearch() {
+ const keywords = (keywordsInput.value || "").trim();
+ const oppType = typeSelect.value;
+
+ if (!keywords) {
+ alert("Please enter one or more keywords.");
+ return;
+ }
+ const postedFrom = formatInputDate(postedFromInput.value);
+ const postedTo = formatInputDate(postedToInput.value);
+
+ showLoading();
+ try {
+ const url = `/api/sam-search?keyword=${encodeURIComponent(keywords)}&postedFrom=${postedFrom}&postedTo=${postedTo}&limit=50`;
+ const response = await fetch(url);
+ const data = await response.json();
+
+ // Map and filter by type if selected
+ let opportunities = (data.opportunitiesData || []).map(opp => ({
+ title: opp.title || "",
+ agency: opp.fullParentPathName || "",
+ type: opp.type || "",
+ postedDate: opp.postedDate || "",
+ responseDeadline: opp.responseDeadLine || "",
+ estimatedValue: (opp.award && opp.award.amount) ? `$${opp.award.amount.toLocaleString()}` : "TBD",
+ link: opp.uiLink || (opp.links && opp.links[0] && opp.links.href) || "#"
+ }));
+
+ // Local filter for opportunity type
+ if (oppType) {
+ const oppTypeLower = oppType.toLowerCase();
+ opportunities = opportunities.filter(opp =>
+ (opp.type || "").toLowerCase().includes(oppTypeLower)
+ );
+ }
+
+ latestResults = opportunities; // Save for export
+ hideLoading();
+ displayResults(opportunities, `Results for "${keywords}"${oppType ? ' (' + oppType + ')' : ''}`);
+ } catch (err) {
+ hideLoading();
+ alert("Error fetching opportunities: " + (err.message || err));
+ }
+}
+
+function displayResults(data, searchTitle) {
+ resultsTitle.textContent = searchTitle || "";
  resultsCount.textContent = `${data.length} opportunities found`;
  resultsHeader.classList.remove('hidden');
  resultsTable.classList.remove('hidden');
@@ -131,34 +126,34 @@ function displayResults(config, data) {
  });
 }
 
-// Fetch live DoD opportunities from serverless API
-async function fetchLiveOpportunities(searchType) {
- const config = searchConfigs[searchType];
- const postedFrom = formatInputDate(postedFromInput.value);
- const postedTo = formatInputDate(postedToInput.value);
- const keyword = keywordMap[searchType];
-
- showLoading();
- try {
- const url = `/api/sam-search?keyword=${encodeURIComponent(keyword)}&postedFrom=${postedFrom}&postedTo=${postedTo}&limit=25`;
- const response = await fetch(url);
- const data = await response.json();
-
- // Defensive parse in case SAM.gov structure changes
- const opportunities = (data.opportunitiesData || []).map(opp => ({
- title: opp.title || "",
- agency: opp.fullParentPathName || "",
- type: opp.type || "",
- postedDate: opp.postedDate || "",
- responseDeadline: opp.responseDeadLine || "",
- estimatedValue: (opp.award && opp.award.amount) ? `$${opp.award.amount.toLocaleString()}` : "TBD",
- link: opp.uiLink || (opp.links && opp.links[0] && opp.links.href) || "#"
- }));
-
- hideLoading();
- displayResults(config, opportunities);
- } catch (err) {
- hideLoading();
- alert("Error fetching opportunities: " + (err.message || err));
+// EXPORT TO CSV
+function exportResultsToCSV() {
+ if (!latestResults.length) {
+ alert("No results to export.");
+ return;
  }
+
+ const header = ["Title", "Agency", "Type", "Posted Date", "Response Deadline", "Estimated Value", "Link"];
+ const rows = latestResults.map(opp => [
+ `"${opp.title.replace(/"/g, '""')}"`,
+ `"${opp.agency.replace(/"/g, '""')}"`,
+ `"${opp.type.replace(/"/g, '""')}"`,
+ `"${formatDate(opp.postedDate)}"`,
+ `"${formatDate(opp.responseDeadline)}"`,
+ `"${(opp.estimatedValue || "").replace(/"/g, '""')}"`,
+ `"${opp.link}"`
+ ].join(","));
+
+ const csvContent = [header.join(","), ...rows].join("\r\n");
+
+ const blob = new Blob([csvContent], {type: "text/csv"});
+ const url = URL.createObjectURL(blob);
+
+ const a = document.createElement("a");
+ a.href = url;
+ a.download = "sam-opportunities.csv";
+ document.body.appendChild(a);
+ a.click();
+ document.body.removeChild(a);
+ URL.revokeObjectURL(url);
 }
